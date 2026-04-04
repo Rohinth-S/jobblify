@@ -12,7 +12,8 @@ Jobblify is a next-generation decentralized freelancing platform engineered to b
 
 ## Landing Page Overview
 
-![Jobblify Interface](https://eager-green-8mjrvuy99t.edgeone.app/Screenshot%202026-04-05%20020754.png)
+<img width="2533" height="1292" alt="image" src="https://github.com/user-attachments/assets/8178e206-9d44-4b9d-9b55-7a8086e7b485" />
+
 
 ---
 
