@@ -28,23 +28,26 @@ export interface CreateTaskData {
 }
 
 export class TaskService {
-  // Create a new task
-  async createTask(clientWallet: string, taskData: CreateTaskData): Promise<Task> {
+  async createTask(clientWallet: string, taskData: CreateTaskData, taskId?: string): Promise<Task> {
+    const taskRecord: any = {
+      title: taskData.title,
+      description: taskData.description,
+      category: taskData.category,
+      budget: taskData.budget,
+      deadline: taskData.deadline,
+      requirements: taskData.requirements,
+      status: 'open',
+      client_wallet: clientWallet,
+      freelancer_wallet: null,
+    };
+
+    if (taskId) {
+      taskRecord.id = taskId;
+    }
+
     const { data, error } = await supabase
       .from('tasks')
-      .insert([
-        {
-          title: taskData.title,
-          description: taskData.description,
-          category: taskData.category,
-          budget: taskData.budget,
-          deadline: taskData.deadline,
-          requirements: taskData.requirements,
-          status: 'open',
-          client_wallet: clientWallet,
-          freelancer_wallet: null,
-        },
-      ])
+      .insert([taskRecord])
       .select()
       .single();
 
@@ -160,6 +163,7 @@ export class TaskService {
       .from('tasks')
       .select('*')
       .eq('freelancer_wallet', freelancerWallet)
+      .in('status', ['in-progress', 'completed'])
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -168,6 +172,21 @@ export class TaskService {
     }
 
     return (data as Task[]) || [];
+  }
+
+  async submitWork(taskId: string, submissionData: any): Promise<void> {
+    const { error } = await supabase
+      .from('tasks')
+      .update({ 
+        Submission: submissionData,
+        status: 'completed' 
+      })
+      .eq('id', taskId);
+
+    if (error) {
+      console.error('Error submitting work:', error);
+      throw new Error(`Error submitting work: ${error.message}`);
+    }
   }
 }
 
