@@ -119,17 +119,17 @@ const AddTask: React.FC = () => {
 
   if (showSuccess) {
     return (
-      <div className="min-h-screen bg-[#111111] text-gray-300 pt-24 pb-16 px-4 flex items-center justify-center">
+      <div className="min-h-screen bg-background text-foreground pt-24 pb-16 px-4 flex items-center justify-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           className="text-center"
         >
-          <div className="bg-gray-800/50 border border-green-500/50 rounded-xl p-12 max-w-md">
-            <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-white mb-2">Task Posted Successfully!</h2>
-            <p className="text-gray-400 mb-2">PYUSD deposited to smart contract</p>
-            <p className="text-gray-500 text-sm">Redirecting to your tasks...</p>
+          <div className="bg-secondary/50 border border-green-500/50 rounded-xl p-12 max-w-md shadow-sm">
+            <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-foreground mb-2">Task Posted Successfully!</h2>
+            <p className="text-muted-foreground mb-2">PYUSD deposited to smart contract</p>
+            <p className="text-muted-foreground text-sm opacity-70">Redirecting to your tasks...</p>
           </div>
         </motion.div>
       </div>
@@ -137,13 +137,13 @@ const AddTask: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#111111] text-gray-300 pt-24 pb-16 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background text-foreground pt-24 pb-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
         {/* Back Button */}
         <Link to="/publisher/tasks">
           <motion.button
             whileHover={{ x: -4 }}
-            className="flex items-center space-x-2 text-gray-400 hover:text-white mb-6 transition-colors"
+            className="flex items-center space-x-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
             <span>Back to Your Tasks</span>
@@ -156,8 +156,8 @@ const AddTask: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">Post a New Task</h1>
-          <p className="text-gray-400">Fill in the details below to create your task</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">Post a New Task</h1>
+          <p className="text-muted-foreground">Fill in the details below to create your task</p>
         </motion.div>
 
         {/* Form */}
@@ -166,18 +166,18 @@ const AddTask: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
           onSubmit={handleSubmit}
-          className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-8 space-y-6"
+          className="bg-secondary/30 border border-border rounded-xl p-8 space-y-6 shadow-sm"
         >
           {/* Error Message */}
           {error && (
-            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 text-red-400 text-sm">
+            <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-4 text-destructive text-sm">
               {error}
             </div>
           )}
 
           {/* Task Title */}
           <div>
-            <label htmlFor="title" className="block text-sm font-semibold text-white mb-2">
+            <label htmlFor="title" className="block text-sm font-semibold text-foreground mb-2">
               Task Title *
             </label>
             <input
@@ -188,13 +188,13 @@ const AddTask: React.FC = () => {
               onChange={handleChange}
               required
               placeholder="e.g., Build a React Component Library"
-              className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
+              className="w-full bg-background border border-border rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:border-foreground transition-colors"
             />
           </div>
 
           {/* Category */}
           <div>
-            <label htmlFor="category" className="text-sm font-semibold text-white mb-2 flex items-center">
+            <label htmlFor="category" className="text-sm font-semibold text-foreground mb-2 flex items-center">
               <Tag className="w-4 h-4 mr-2" />
               Category *
             </label>
@@ -204,7 +204,7 @@ const AddTask: React.FC = () => {
               value={formData.category}
               onChange={handleChange}
               required
-              className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-colors"
+              className="w-full bg-background border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-foreground transition-colors"
             >
               {categories.map((cat) => (
                 <option key={cat} value={cat}>
@@ -216,7 +216,7 @@ const AddTask: React.FC = () => {
 
           {/* Description */}
           <div>
-            <label htmlFor="description" className="text-sm font-semibold text-white mb-2 flex items-center">
+            <label htmlFor="description" className="text-sm font-semibold text-foreground mb-2 flex items-center">
               <FileText className="w-4 h-4 mr-2" />
               Description *
             </label>
@@ -228,14 +228,14 @@ const AddTask: React.FC = () => {
               required
               rows={6}
               placeholder="Describe your task in detail..."
-              className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors resize-none"
+              className="w-full bg-background border border-border rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:border-foreground transition-colors resize-none"
             />
           </div>
 
           {/* Budget and Deadline */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="budget" className="text-sm font-semibold text-white mb-2 flex items-center">
+              <label htmlFor="budget" className="text-sm font-semibold text-foreground mb-2 flex items-center">
                 <DollarSign className="w-4 h-4 mr-2" />
                 Budget (PYUSD) *
               </label>
@@ -248,12 +248,12 @@ const AddTask: React.FC = () => {
                 required
                 min="1"
                 placeholder="500"
-                className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
+                className="w-full bg-background border border-border rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:border-foreground transition-colors"
               />
             </div>
 
             <div>
-              <label htmlFor="deadline" className="text-sm font-semibold text-white mb-2 flex items-center">
+              <label htmlFor="deadline" className="text-sm font-semibold text-foreground mb-2 flex items-center">
                 <Calendar className="w-4 h-4 mr-2" />
                 Deadline *
               </label>
@@ -265,29 +265,29 @@ const AddTask: React.FC = () => {
                 onChange={handleChange}
                 required
                 min={new Date().toISOString().split('T')[0]}
-                className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-colors"
+                className="w-full bg-background border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-foreground transition-colors"
               />
             </div>
           </div>
 
           {/* Requirements */}
           <div>
-            <label className="block text-sm font-semibold text-white mb-2">Requirements</label>
+            <label className="block text-sm font-semibold text-foreground mb-2">Requirements</label>
             <div className="space-y-3">
               {formData.requirements.map((req, index) => (
                 <div key={index} className="flex items-center space-x-2">
                   <input
-                    type="text"
+                     type="text"
                     value={req}
                     onChange={(e) => handleRequirementChange(index, e.target.value)}
                     placeholder={`Requirement ${index + 1}`}
-                    className="flex-grow bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
+                    className="flex-grow bg-background border border-border rounded-lg px-4 py-2 text-foreground placeholder-muted-foreground focus:outline-none focus:border-foreground transition-colors"
                   />
                   {formData.requirements.length > 1 && (
                     <button
                       type="button"
                       onClick={() => removeRequirement(index)}
-                      className="text-red-400 hover:text-red-300 text-sm font-medium"
+                      className="text-destructive hover:text-destructive/80 text-sm font-medium"
                     >
                       Remove
                     </button>
@@ -298,20 +298,18 @@ const AddTask: React.FC = () => {
             <button
               type="button"
               onClick={addRequirement}
-              className="mt-3 text-orange-500 hover:text-orange-400 text-sm font-medium"
+              className="mt-3 text-foreground hover:text-muted-foreground text-sm font-medium border border-border rounded px-3 py-1"
             >
               + Add Requirement
             </button>
           </div>
 
-          {/* Payment Info removed as requested */}
-
           {/* Submit Button */}
-          <div className="flex items-center justify-end space-x-4 pt-4">
+          <div className="flex items-center justify-end space-x-4 pt-4 border-t border-border mt-6">
             <Link to="/publisher/tasks">
               <button
                 type="button"
-                className="px-6 py-3 rounded-md text-gray-300 hover:text-white transition-colors"
+                className="px-6 py-3 rounded-md text-muted-foreground hover:text-foreground transition-colors"
               >
                 Cancel
               </button>
@@ -321,7 +319,7 @@ const AddTask: React.FC = () => {
               disabled={isSubmitting}
               whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
               whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
-              className="bg-orange-500 text-white px-8 py-3 rounded-md font-semibold hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+              className="bg-foreground text-background px-8 py-3 rounded-md font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
             >
               {isSubmitting ? 'Posting...' : 'Post Task'}
             </motion.button>

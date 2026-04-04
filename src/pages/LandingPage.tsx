@@ -1,7 +1,9 @@
-import React, { useEffect, useRef, useState, useCallback, forwardRef, useImperativeHandle, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, forwardRef, useImperativeHandle, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, type Transition, type VariantLabels, type Target, type TargetAndTransition, type Variants } from 'framer-motion';
-import { Briefcase, CheckCircle, TrendingUp, Shield, Zap, Twitter, Linkedin, Github } from 'lucide-react';
+import { Briefcase, Activity, ShieldCheck, Cpu, ArrowRight, Twitter, Linkedin, Github } from 'lucide-react';
+import { Scene3D } from '../components/Scene3D';
+import LiquidEther from './LiquidEther';
 
 function cn(...classes: (string | undefined | null | boolean)[]): string {
   return classes.filter(Boolean).join(" ");
@@ -206,361 +208,256 @@ const RotatingText = forwardRef<RotatingTextRef, RotatingTextProps>(
 RotatingText.displayName = "RotatingText";
 
 
+const FeatureNode = ({ 
+  icon: Icon, 
+  title, 
+  description, 
+  delay, 
+  isLast 
+}: { 
+  icon: any, 
+  title: string, 
+  description: string, 
+  delay: number, 
+  isLast?: boolean 
+}) => {
+  return (
+    <div className="relative flex flex-col md:flex-row items-start md:items-center gap-8 w-full max-w-4xl mx-auto group">
+      {/* Connector Line (Desktop) */}
+      {!isLast && (
+        <motion.div 
+          initial={{ height: 0 }}
+          whileInView={{ height: 'calc(100% + 4rem)' }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 1.5, delay: delay + 0.5, ease: "easeInOut" }}
+          className="hidden md:block absolute left-[3.25rem] top-24 w-[2px] bg-gradient-to-b from-border via-foreground/20 to-transparent z-0 origin-top" 
+        />
+      )}
+      
+      {/* Connector Line (Mobile) */}
+      {!isLast && (
+        <motion.div 
+          initial={{ height: 0 }}
+          whileInView={{ height: 'calc(100% + 3rem)' }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 1.5, delay: delay + 0.5, ease: "easeInOut" }}
+          className="block md:hidden absolute left-8 top-20 w-[2px] bg-gradient-to-b from-border via-foreground/20 to-transparent z-0 origin-top" 
+        />
+      )}
 
+      {/* Icon Node */}
+      <motion.div 
+        initial={{ scale: 0, opacity: 0, rotate: -20 }}
+        whileInView={{ scale: 1, opacity: 1, rotate: 0 }}
+        whileHover={{ scale: 1.1, rotate: 10, boxShadow: "0 0 20px rgba(255,255,255,0.2)" }}
+        animate={{ y: [0, -5, 0] }}
+        transition={{ 
+          type: "spring", stiffness: 300, damping: 20, delay,
+          y: { duration: 4, repeat: Infinity, ease: "easeInOut", delay: delay }
+        }}
+        viewport={{ once: true, margin: "-100px" }}
+        className="relative z-10 shrink-0 w-16 h-16 rounded-2xl bg-secondary/80 border-2 border-border/80 flex items-center justify-center backdrop-blur-xl shadow-lg cursor-pointer"
+      >
+        <Icon className="w-7 h-7 text-foreground transition-colors group-hover:text-foreground" />
+      </motion.div>
 
-interface Dot {
-  x: number;
-  y: number;
-  baseColor: string;
-  targetOpacity: number;
-  currentOpacity: number;
-  opacitySpeed: number;
-  baseRadius: number;
-  currentRadius: number;
-}
+      {/* Content */}
+      <motion.div 
+        initial={{ x: 20, opacity: 0 }}
+        whileInView={{ x: 0, opacity: 1 }}
+        whileHover={{ scale: 1.02, x: 5 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ ease: "easeOut", duration: 0.6, delay: delay + 0.1 }}
+        className="flex-1 pt-2 md:pt-0 pb-12 md:pb-0 relative cursor-pointer"
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-foreground/5 to-transparent rounded-2xl opacity-0 hover:opacity-100 transition-opacity duration-500 blur-xl"></div>
+        <div className="relative bg-secondary/30 border border-border/50 rounded-2xl p-8 backdrop-blur-md overflow-hidden transition-all duration-300 hover:bg-secondary/40 hover:border-foreground/30 hover:shadow-[0_0_30px_-5px_rgba(255,255,255,0.1)]">
+          
+          <h3 className="text-xl md:text-2xl font-bold text-foreground mb-3 tracking-tight">{title}</h3>
+          <p className="text-muted-foreground leading-relaxed text-base">
+            {description}
+          </p>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
 
-const FreelancePlatform: React.FC = () => {
-  // navigation handled elsewhere
+const JobblifyLanding: React.FC = () => {
   const navigate = useNavigate();
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationFrameId = useRef<number | null>(null);
-  // Wallet connect is handled in the global header
 
-  const dotsRef = useRef<Dot[]>([]);
-  const gridRef = useRef<Record<string, number[]>>({});
-  const canvasSizeRef = useRef<{ width: number; height: number }>({ width: 0, height: 0 });
-  const mousePositionRef = useRef<{ x: number | null; y: number | null }>({ x: null, y: null });
-
-  const DOT_SPACING = 25;
-  const BASE_OPACITY_MIN = 0.40;
-  const BASE_OPACITY_MAX = 0.50;
-  const BASE_RADIUS = 1;
-  const INTERACTION_RADIUS = 150;
-  const INTERACTION_RADIUS_SQ = INTERACTION_RADIUS * INTERACTION_RADIUS;
-  const OPACITY_BOOST = 0.6;
-  const RADIUS_BOOST = 2.5;
-  const GRID_CELL_SIZE = Math.max(50, Math.floor(INTERACTION_RADIUS / 1.5));
-
-  const handleMouseMove = useCallback((event: globalThis.MouseEvent) => {
-    const canvas = canvasRef.current;
-    if (!canvas) {
-      mousePositionRef.current = { x: null, y: null };
-      return;
-    }
-    const rect = canvas.getBoundingClientRect();
-    const canvasX = event.clientX - rect.left;
-    const canvasY = event.clientY - rect.top;
-    mousePositionRef.current = { x: canvasX, y: canvasY };
-  }, []);
-
-  const createDots = useCallback(() => {
-    const { width, height } = canvasSizeRef.current;
-    if (width === 0 || height === 0) return;
-
-    const newDots: Dot[] = [];
-    const newGrid: Record<string, number[]> = {};
-    const cols = Math.ceil(width / DOT_SPACING);
-    const rows = Math.ceil(height / DOT_SPACING);
-
-    for (let i = 0; i < cols; i++) {
-      for (let j = 0; j < rows; j++) {
-        const x = i * DOT_SPACING + DOT_SPACING / 2;
-        const y = j * DOT_SPACING + DOT_SPACING / 2;
-        const cellX = Math.floor(x / GRID_CELL_SIZE);
-        const cellY = Math.floor(y / GRID_CELL_SIZE);
-        const cellKey = `${cellX}_${cellY}`;
-
-        if (!newGrid[cellKey]) {
-          newGrid[cellKey] = [];
-        }
-
-        const dotIndex = newDots.length;
-        newGrid[cellKey].push(dotIndex);
-
-        const baseOpacity = Math.random() * (BASE_OPACITY_MAX - BASE_OPACITY_MIN) + BASE_OPACITY_MIN;
-        newDots.push({
-          x,
-          y,
-          baseColor: `rgba(249, 115, 22, ${BASE_OPACITY_MAX})`,
-          targetOpacity: baseOpacity,
-          currentOpacity: baseOpacity,
-          opacitySpeed: (Math.random() * 0.005) + 0.002,
-          baseRadius: BASE_RADIUS,
-          currentRadius: BASE_RADIUS,
-        });
-      }
-    }
-    dotsRef.current = newDots;
-    gridRef.current = newGrid;
-  }, [DOT_SPACING, GRID_CELL_SIZE, BASE_OPACITY_MIN, BASE_OPACITY_MAX, BASE_RADIUS]);
-
-  const handleResize = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const container = canvas.parentElement;
-    const width = container ? container.clientWidth : window.innerWidth;
-    const height = container ? container.clientHeight : window.innerHeight;
-
-    if (canvas.width !== width || canvas.height !== height || canvasSizeRef.current.width !== width || canvasSizeRef.current.height !== height) {
-      canvas.width = width;
-      canvas.height = height;
-      canvasSizeRef.current = { width, height };
-      createDots();
-    }
-  }, [createDots]);
-
-  const animateDots = useCallback(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext('2d');
-    const dots = dotsRef.current;
-    const grid = gridRef.current;
-    const { width, height } = canvasSizeRef.current;
-    const { x: mouseX, y: mouseY } = mousePositionRef.current;
-
-    if (!ctx || !dots || !grid || width === 0 || height === 0) {
-      animationFrameId.current = requestAnimationFrame(animateDots);
-      return;
-    }
-
-    ctx.clearRect(0, 0, width, height);
-
-    const activeDotIndices = new Set<number>();
-    if (mouseX !== null && mouseY !== null) {
-      const mouseCellX = Math.floor(mouseX / GRID_CELL_SIZE);
-      const mouseCellY = Math.floor(mouseY / GRID_CELL_SIZE);
-      const searchRadius = Math.ceil(INTERACTION_RADIUS / GRID_CELL_SIZE);
-      for (let i = -searchRadius; i <= searchRadius; i++) {
-        for (let j = -searchRadius; j <= searchRadius; j++) {
-          const checkCellX = mouseCellX + i;
-          const checkCellY = mouseCellY + j;
-          const cellKey = `${checkCellX}_${checkCellY}`;
-          if (grid[cellKey]) {
-            grid[cellKey].forEach(dotIndex => activeDotIndices.add(dotIndex));
-          }
-        }
-      }
-    }
-
-    dots.forEach((dot, index) => {
-      dot.currentOpacity += dot.opacitySpeed;
-      if (dot.currentOpacity >= dot.targetOpacity || dot.currentOpacity <= BASE_OPACITY_MIN) {
-        dot.opacitySpeed = -dot.opacitySpeed;
-        dot.currentOpacity = Math.max(BASE_OPACITY_MIN, Math.min(dot.currentOpacity, BASE_OPACITY_MAX));
-        dot.targetOpacity = Math.random() * (BASE_OPACITY_MAX - BASE_OPACITY_MIN) + BASE_OPACITY_MIN;
-      }
-
-      let interactionFactor = 0;
-      dot.currentRadius = dot.baseRadius;
-
-      if (mouseX !== null && mouseY !== null && activeDotIndices.has(index)) {
-        const dx = dot.x - mouseX;
-        const dy = dot.y - mouseY;
-        const distSq = dx * dx + dy * dy;
-
-        if (distSq < INTERACTION_RADIUS_SQ) {
-          const distance = Math.sqrt(distSq);
-          interactionFactor = Math.max(0, 1 - distance / INTERACTION_RADIUS);
-          interactionFactor = interactionFactor * interactionFactor;
-        }
-      }
-
-      const finalOpacity = Math.min(1, dot.currentOpacity + interactionFactor * OPACITY_BOOST);
-      dot.currentRadius = dot.baseRadius + interactionFactor * RADIUS_BOOST;
-
-      const colorMatch = dot.baseColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
-      const r = colorMatch ? colorMatch[1] : '249';
-      const g = colorMatch ? colorMatch[2] : '115';
-      const b = colorMatch ? colorMatch[3] : '22';
-
-      ctx.beginPath();
-      ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${finalOpacity.toFixed(3)})`;
-      ctx.arc(dot.x, dot.y, dot.currentRadius, 0, Math.PI * 2);
-      ctx.fill();
-    });
-
-    animationFrameId.current = requestAnimationFrame(animateDots);
-  }, [GRID_CELL_SIZE, INTERACTION_RADIUS, INTERACTION_RADIUS_SQ, OPACITY_BOOST, RADIUS_BOOST, BASE_OPACITY_MIN, BASE_OPACITY_MAX, BASE_RADIUS]);
-
-  useEffect(() => {
-    handleResize();
-    const handleMouseLeave = () => {
-      mousePositionRef.current = { x: null, y: null };
-    };
-
-    window.addEventListener('mousemove', handleMouseMove, { passive: true });
-    window.addEventListener('resize', handleResize);
-    document.documentElement.addEventListener('mouseleave', handleMouseLeave);
-
-    animationFrameId.current = requestAnimationFrame(animateDots);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('mousemove', handleMouseMove);
-      document.documentElement.removeEventListener('mouseleave', handleMouseLeave);
-      if (animationFrameId.current) {
-        cancelAnimationFrame(animationFrameId.current);
-      }
-    };
-  }, [handleResize, handleMouseMove, animateDots]);
-
-  const contentDelay = 0.3;
+  const contentDelay = 0.2;
   const itemDelayIncrement = 0.1;
 
   const bannerVariants: Variants = {
-    hidden: { opacity: 0, y: -10 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.4, delay: contentDelay } }
+    hidden: { opacity: 0, y: -20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut", delay: contentDelay } }
   };
   const headlineVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { duration: 0.5, delay: contentDelay + itemDelayIncrement } }
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut", delay: contentDelay + itemDelayIncrement } }
   };
   const subHeadlineVariants: Variants = {
-    hidden: { opacity: 0, y: 10 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5, delay: contentDelay + itemDelayIncrement * 2 } }
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut", delay: contentDelay + itemDelayIncrement * 2 } }
   };
   const ctaVariants: Variants = {
-    hidden: { opacity: 0, y: 10 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5, delay: contentDelay + itemDelayIncrement * 3 } }
-  };
-  const featuresVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { duration: 0.5, delay: contentDelay + itemDelayIncrement * 4 } }
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: { opacity: 1, scale: 1, transition: { type: "spring", stiffness: 400, damping: 25, delay: contentDelay + itemDelayIncrement * 3 } }
   };
 
   return (
-    <div className="min-h-screen relative bg-[#111111] text-gray-300 flex flex-col overflow-x-hidden">
-      <canvas ref={canvasRef} className="absolute inset-0 z-0 pointer-events-none opacity-80" />
-      <div className="absolute inset-0 z-1 pointer-events-none" style={{
-        background: 'linear-gradient(to bottom, transparent 0%, #111111 90%), radial-gradient(ellipse at center, transparent 40%, #111111 95%)'
-      }}></div>
+    <div className="min-h-screen relative bg-background text-foreground flex flex-col overflow-x-hidden selection:bg-foreground selection:text-background">
+      <Scene3D />
+      <div className="absolute top-0 left-0 w-full h-[800px] z-0 pointer-events-none opacity-60">
+        <LiquidEther
+          colors={[ '#ffffff', '#e0e0e0', '#cccccc' ]}
+          mouseForce={20}
+          cursorSize={100}
+          isViscous
+          viscous={30}
+          iterationsViscous={32}
+          iterationsPoisson={32}
+          resolution={0.5}
+          isBounce={false}
+          autoDemo
+          autoSpeed={0.5}
+          autoIntensity={2.2}
+          takeoverDuration={0.25}
+          autoResumeDelay={3000}
+          autoRampDuration={0.6}
+        />
+      </div>
 
-      {/* Header removed on landing; app-level header is used elsewhere */}
-
-      <main className="flex-grow flex flex-col items-center justify-center text-center px-4 pt-20 pb-0 relative z-10">
-        <motion.div
-          variants={bannerVariants}
-          initial="hidden"
-          animate="visible"
-          className="mb-6"
-        >
-          <div className="bg-[#1a1a1a] border border-orange-500/30 text-orange-500 px-4 py-1 rounded-full text-xs sm:text-sm font-medium cursor-pointer hover:border-orange-500/50 transition-colors inline-flex items-center gap-2">
-            <Zap className="w-4 h-4" />
-            Secure Payments & AI-Powered Task Verification
-          </div>
-        </motion.div>
-
-        <motion.h1
-          variants={headlineVariants}
-          initial="hidden"
-          animate="visible"
-          className="text-4xl sm:text-5xl lg:text-[64px] font-semibold text-white leading-tight max-w-4xl mb-4"
-        >
-          Freelancing Platform with{' '}
-          <span className="inline-block h-[1.2em] sm:h-[1.2em] lg:h-[1.2em] overflow-hidden align-bottom">
-            <RotatingText
-              texts={['PYUSD', 'Fetch.ai']}
-              mainClassName="text-orange-500 mx-1"
-              staggerFrom={"last"}
-              initial={{ y: "-100%", opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: "110%", opacity: 0 }}
-              staggerDuration={0.01}
-              transition={{ type: "spring", damping: 18, stiffness: 250 }}
-              rotationInterval={2200}
-              splitBy="characters"
-              auto={true}
-              loop={true}
-            />
-          </span>
-        </motion.h1>
-
-        <motion.p
-          variants={subHeadlineVariants}
-          initial="hidden"
-          animate="visible"
-          className="text-base sm:text-lg lg:text-xl text-gray-400 max-w-2xl mx-auto mb-8"
-        >
-          A decentralized freelance platform powered by AI agents. Post tasks, find verified freelancers, and get paid securely with Web3 technology.
-        </motion.p>
-
-        <motion.div
-          variants={ctaVariants}
-          initial="hidden"
-          animate="visible"
-          className="flex items-center justify-center mb-16"
-        >
-          <motion.button
-            onClick={() => navigate('/dashboard')}
-            className="bg-orange-500 text-white px-10 py-3.5 rounded-md text-base font-semibold hover:bg-orange-600 transition-colors duration-200 shadow-lg hover:shadow-xl"
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.98 }}
-            transition={{ type: "spring", stiffness: 400, damping: 15 }}
+      <main className="flex-grow flex flex-col relative z-10 w-full pt-32 pb-32">
+        {/* HERO SECTION */}
+        <div className="flex flex-col items-center justify-center text-center px-6 max-w-5xl mx-auto w-full min-h-[60vh]">
+          <motion.div
+            variants={bannerVariants}
+            initial="hidden"
+            animate="visible"
+            className="mb-8"
           >
-            Get Started
-          </motion.button>
-        </motion.div>
-
-        <motion.div
-          variants={featuresVariants}
-          initial="hidden"
-          animate="visible"
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-0"
-        >
-          <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-6 backdrop-blur-sm">
-            <CheckCircle className="w-10 h-10 text-orange-500 mb-4 mx-auto" />
-            <h3 className="text-lg font-semibold text-white mb-2">Fetch.AI Agent Verification</h3>
-            <p className="text-sm text-gray-400">Autonomous AI agents assess freelancer experience, verify eligibility, and validate task completion with intelligent accuracy</p>
-          </div>
-          <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-6 backdrop-blur-sm">
-            <Shield className="w-10 h-10 text-orange-500 mb-4 mx-auto" />
-            <h3 className="text-lg font-semibold text-white mb-2">PYUSD Secure Payments</h3>
-            <p className="text-sm text-gray-400">PayPal USD stablecoin ensures instant, transparent payments released automatically upon AI-verified task completion</p>
-          </div>
-          <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-6 backdrop-blur-sm">
-            <TrendingUp className="w-10 h-10 text-orange-500 mb-4 mx-auto" />
-            <h3 className="text-lg font-semibold text-white mb-2">Smart Task Matching</h3>
-            <p className="text-sm text-gray-400">AI-powered matching connects publishers with the most qualified freelancers instantly for coding, design, translation, and more</p>
-          </div>
-        </motion.div>
-      </main>
-
-      <footer className="relative w-full max-w-6xl mx-auto flex flex-col items-center justify-center rounded-t-4xl border-t bg-[radial-gradient(35%_128px_at_50%_0%,theme(backgroundColor.white/8%),transparent)] px-6 py-12 lg:py-16 z-10">
-        <div className="bg-foreground/20 absolute top-0 right-1/2 left-1/2 h-px w-1/3 -translate-x-1/2 -translate-y-1/2 rounded-full blur" />
-
-        <div className="grid w-full gap-8 xl:grid-cols-3 xl:gap-8">
-          <div className="space-y-4">
-            <div className="flex items-center">
-              <Briefcase className="text-orange-500 w-6 h-6" />
-              <span className="text-lg font-bold text-white ml-2">freelanceai</span>
+            <div className="bg-secondary/40 border border-border/50 text-muted-foreground px-5 py-2 rounded-full text-sm font-medium hover:border-foreground/30 transition-all cursor-default inline-flex items-center gap-2 backdrop-blur-xl shadow-2xl">
+              <Activity className="w-4 h-4 text-foreground" />
+              <span className="text-foreground/90">v2.0 Protocol Live</span>
+              <span className="w-1 h-1 rounded-full bg-foreground/30 mx-1"></span>
+              Enhanced Node Matching
             </div>
-            <p className="text-muted-foreground text-sm">
-              © {new Date().getFullYear()} freelanceai. All rights reserved.
+          </motion.div>
+
+          <motion.h1
+            variants={headlineVariants}
+            initial="hidden"
+            animate="visible"
+            className="text-5xl sm:text-6xl md:text-7xl font-bold text-foreground tracking-tight leading-[1.1] mb-8"
+          >
+            Decentralized Work,<br className="hidden md:block" /> Powered by{' '}
+            <span className="inline-block h-[1.2em] overflow-hidden align-bottom">
+              <RotatingText
+                texts={['AI Agents.', 'PYUSD.', 'Web3.']}
+                mainClassName="text-foreground"
+                staggerFrom="last"
+                initial={{ y: "-100%", opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: "110%", opacity: 0 }}
+                staggerDuration={0.02}
+                transition={{ type: "spring", damping: 20, stiffness: 300 }}
+                rotationInterval={2500}
+                splitBy="characters"
+                auto={true}
+                loop={true}
+              />
+            </span>
+          </motion.h1>
+
+          <motion.p
+            variants={subHeadlineVariants}
+            initial="hidden"
+            animate="visible"
+            className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-14 leading-relaxed font-medium"
+          >
+            Jobblify is the next-generation freelance protocol. We connect top-tier talent with ambitious publishers, ensuring trust through immutable smart contracts and algorithmic verification.
+          </motion.p>
+
+          <motion.div
+            variants={ctaVariants}
+            initial="hidden"
+            animate="visible"
+            className="flex flex-col sm:flex-row items-center gap-4"
+          >
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="group bg-foreground text-background px-8 py-4 rounded-xl text-base font-semibold hover:opacity-90 transition-all shadow-[0_0_40px_-10px_rgba(255,255,255,0.2)] flex items-center gap-2"
+            >
+              Enter Dashboard
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </button>
+            <a 
+              href="#protocol-chain" 
+              className="px-8 py-4 rounded-xl text-base font-semibold text-foreground border border-border hover:bg-secondary/50 transition-colors backdrop-blur-md"
+            >
+              Explore Protocol
+            </a>
+          </motion.div>
+        </div>
+
+        {/* CHAINED FEATURES SECTION */}
+        <div id="protocol-chain" className="w-full px-6 mt-32">
+          <div className="max-w-4xl mx-auto mb-20 text-center md:text-left">
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4 text-foreground">
+              The Jobblify Chain
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-2xl">
+              Our infrastructure is designed sequentially to eliminate friction, guarantee payment, and perfectly match talent.
             </p>
           </div>
 
-          <div className="mt-10 grid grid-cols-2 gap-8 md:grid-cols-3 xl:col-span-2 xl:mt-0">
-            <div className="mb-10 md:mb-0">
-              <ul className="text-muted-foreground space-y-2 text-sm">
-                <li></li>
-                <li></li>
-                <li></li>
-              </ul>
-            </div>
-            <div className="mb-10 md:mb-0">
-              <ul className="text-muted-foreground space-y-2 text-sm">
-                <li></li>
-                <li></li>
-                <li></li>
-              </ul>
-            </div>
-            <div className="mb-10 md:mb-0">
-              <h3 className="text-xs text-gray-400 mb-4">Contact</h3>
-              <ul className="text-muted-foreground space-y-2 text-sm">
-                <li><a href="#" className="hover:text-white transition-colors inline-flex items-center"><Twitter className="w-4 h-4 mr-2" />Twitter</a></li>
-                <li><a href="#" className="hover:text-white transition-colors inline-flex items-center"><Linkedin className="w-4 h-4 mr-2" />LinkedIn</a></li>
-                <li><a href="#" className="hover:text-white transition-colors inline-flex items-center"><Github className="w-4 h-4 mr-2" />GitHub</a></li>
-              </ul>
-            </div>
+          <div className="flex flex-col gap-8 md:gap-16 relative">
+            <FeatureNode 
+              icon={Cpu}
+              title="Autonomous Node Matching"
+              description="Our specialized AI nodes instantly analyze your task requirements and cross-reference them against a decentralized ledger of verified freelancer profiles, ensuring a highly accurate talent alignment."
+              delay={0.1}
+            />
+            
+            <FeatureNode 
+              icon={Briefcase}
+              title="Agent Verification Protocol"
+              description="Quality assurance isn't subjective. Our deployment agents cryptographically verify portfolio submissions, parse eligibility criteria, and enforce task prerequisites before bids are even placed."
+              delay={0.2}
+            />
+
+            <FeatureNode 
+              icon={ShieldCheck}
+              title="PYUSD Escrow & Settlement"
+              description="Capital is secured upfront via PayPal USD (PYUSD) smart contracts. Once the AI oracle validates completion, funds are released automatically and transparently—zero disputes, zero latency."
+              delay={0.3}
+              isLast={true}
+            />
+          </div>
+        </div>
+      </main>
+
+      <footer className="relative w-full border-t border-border bg-background pt-16 pb-8 px-6 z-10">
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+          <div className="flex items-center space-x-2">
+            <Briefcase className="text-foreground w-6 h-6" />
+            <span className="text-xl font-bold text-foreground tracking-tight">jobblify</span>
+          </div>
+          
+          <div className="flex space-x-6 text-muted-foreground">
+            <a href="#" className="hover:text-foreground transition-colors"><Twitter className="w-5 h-5" /></a>
+            <a href="#" className="hover:text-foreground transition-colors"><Linkedin className="w-5 h-5" /></a>
+            <a href="#" className="hover:text-foreground transition-colors"><Github className="w-5 h-5" /></a>
+          </div>
+        </div>
+        
+        <div className="max-w-5xl mx-auto mt-8 border-t border-border/50 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+          <p>© {new Date().getFullYear()} Jobblify Protocol. All rights reserved.</p>
+          <div className="flex gap-6">
+            <a href="#" className="hover:text-foreground transition-colors">Privacy</a>
+            <a href="#" className="hover:text-foreground transition-colors">Terms</a>
           </div>
         </div>
       </footer>
@@ -568,4 +465,4 @@ const FreelancePlatform: React.FC = () => {
   );
 };
 
-export default FreelancePlatform;
+export default JobblifyLanding;

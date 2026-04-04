@@ -31,7 +31,7 @@ const Header: React.FC<HeaderProps> = ({ userRole, onSelectRole }) => {
 
   return (
     <motion.header
-      className="fixed top-0 left-0 right-0 z-50 bg-[#111111]/95 border-b border-gray-700/50 backdrop-blur-sm"
+      className="fixed top-0 left-0 right-0 z-50 bg-background/95 border-b border-border backdrop-blur-md"
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.3 }}
@@ -40,15 +40,44 @@ const Header: React.FC<HeaderProps> = ({ userRole, onSelectRole }) => {
         <div className="flex items-center justify-between h-16">
           {/* Logo → navigate to landing */}
           <Link to="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-            <Briefcase className="text-orange-500 w-7 h-7" />
-            <span className="text-xl font-bold text-white">freelanceai</span>
+            <Briefcase className="text-foreground w-7 h-7" />
+            <span className="text-xl font-bold text-foreground">jobblify</span>
           </Link>
 
           {/* Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             {isPublisher ? (
               <>
-                {/* Publisher navigation removed */}
+                <Link
+                  to="/publisher/tasks"
+                  className={`text-sm font-medium transition-colors ${
+                    location.pathname.includes('/publisher/task')
+                      ? 'text-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  to="/publisher/add-task"
+                  className={`text-sm font-medium transition-colors ${
+                    location.pathname === '/publisher/add-task'
+                      ? 'text-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Post Task
+                </Link>
+                <Link
+                  to="/profile"
+                  className={`text-sm font-medium transition-colors ${
+                    location.pathname === '/profile'
+                      ? 'text-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Profile
+                </Link>
               </>
             ) : (
               <>
@@ -56,8 +85,8 @@ const Header: React.FC<HeaderProps> = ({ userRole, onSelectRole }) => {
                   to="/freelancer/browse"
                   className={`text-sm font-medium transition-colors ${
                     location.pathname.includes('/freelancer/browse')
-                      ? 'text-orange-500'
-                      : 'text-gray-300 hover:text-white'
+                      ? 'text-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   Browse Tasks
@@ -66,8 +95,8 @@ const Header: React.FC<HeaderProps> = ({ userRole, onSelectRole }) => {
                   to="/freelancer/your-tasks"
                   className={`text-sm font-medium transition-colors ${
                     location.pathname.includes('/freelancer/your-tasks')
-                      ? 'text-orange-500'
-                      : 'text-gray-300 hover:text-white'
+                      ? 'text-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   Your Tasks
@@ -76,8 +105,8 @@ const Header: React.FC<HeaderProps> = ({ userRole, onSelectRole }) => {
                   to="/profile"
                   className={`text-sm font-medium transition-colors ${
                     location.pathname === '/profile'
-                      ? 'text-orange-500'
-                      : 'text-gray-300 hover:text-white'
+                      ? 'text-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   Profile
@@ -92,9 +121,9 @@ const Header: React.FC<HeaderProps> = ({ userRole, onSelectRole }) => {
             <motion.button
               onClick={handleWalletClick}
               disabled={isConnecting}
-              whileHover={{ scale: isConnecting ? 1 : 1.05 }}
-              whileTap={{ scale: isConnecting ? 1 : 0.95 }}
-              className="bg-orange-500 text-white px-3 sm:px-4 py-1.5 rounded-md text-sm font-semibold hover:bg-orange-600 transition-colors flex items-center space-x-2 shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
+              whileHover={{ scale: isConnecting ? 1 : 1.02 }}
+              whileTap={{ scale: isConnecting ? 1 : 0.98 }}
+              className="bg-foreground text-background px-4 py-2 rounded-sm text-sm font-semibold hover:opacity-90 transition-opacity flex items-center space-x-2 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
             >
               <Wallet className="w-4 h-4" />
               <span className="hidden sm:inline">
@@ -104,7 +133,7 @@ const Header: React.FC<HeaderProps> = ({ userRole, onSelectRole }) => {
                 {isConnecting ? 'Connecting...' : walletAddress ? `${walletAddress.slice(0, 4)}...` : 'Connect'}
               </span>
             </motion.button>
-            <div className="flex items-center bg-gray-800/50 rounded-lg p-1 border border-gray-700/50">
+            <div className="flex items-center bg-secondary/50 rounded-sm p-1 border border-border">
               <button
                 onClick={() => {
                   if (!isPublisher) {
@@ -112,10 +141,10 @@ const Header: React.FC<HeaderProps> = ({ userRole, onSelectRole }) => {
                   }
                   navigate('/publisher/tasks');
                 }}
-                className={`flex items-center space-x-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                className={`flex items-center space-x-2 px-3 py-1.5 rounded-sm text-sm font-medium transition-all ${
                   isPublisher
-                    ? 'bg-orange-500 text-white'
-                    : 'text-gray-400 hover:text-gray-300'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <Folder className="w-4 h-4" />
@@ -128,10 +157,10 @@ const Header: React.FC<HeaderProps> = ({ userRole, onSelectRole }) => {
                   }
                   navigate('/freelancer/browse');
                 }}
-                className={`flex items-center space-x-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                className={`flex items-center space-x-2 px-3 py-1.5 rounded-sm text-sm font-medium transition-all ${
                   !isPublisher
-                    ? 'bg-orange-500 text-white'
-                    : 'text-gray-400 hover:text-gray-300'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <User className="w-4 h-4" />

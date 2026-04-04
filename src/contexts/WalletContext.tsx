@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
 import { walletService } from '../services/wallet';
 import { userService } from '../services/userService';
 import type { User } from '../services/supabase';

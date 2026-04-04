@@ -54,7 +54,7 @@ const YourTasks: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#111111] text-gray-300 pt-24 pb-16 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background text-foreground pt-24 pb-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
@@ -65,14 +65,14 @@ const YourTasks: React.FC = () => {
         >
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">Your Tasks</h1>
-              <p className="text-gray-400">Manage and track all your posted tasks</p>
+              <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">Your Tasks</h1>
+              <p className="text-muted-foreground">Manage and track all your posted tasks</p>
             </div>
             <Link to="/publisher/add-task">
               <motion.button
-                whileHover={{ scale: 1.05 }}
+                whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="bg-orange-500 text-white px-6 py-3 rounded-md font-semibold hover:bg-orange-600 transition-colors flex items-center space-x-2 shadow-lg"
+                className="bg-foreground text-background px-6 py-3 rounded-md font-semibold hover:opacity-90 transition-opacity flex items-center space-x-2 shadow-sm"
               >
                 <Plus className="w-5 h-5" />
                 <span>Add Task</span>
@@ -88,8 +88,8 @@ const YourTasks: React.FC = () => {
                 onClick={() => setFilter(status as 'all' | 'open' | 'in-progress' | 'completed' | 'expired')}
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
                   filter === status
-                    ? 'bg-orange-500 text-white'
-                    : 'bg-gray-800/50 text-gray-400 hover:text-gray-300 border border-gray-700/50'
+                    ? 'bg-foreground text-background shadow-sm'
+                    : 'bg-secondary/50 text-muted-foreground hover:text-foreground border border-border'
                 }`}
               >
                 {status.charAt(0).toUpperCase() + status.slice(1).replace('-', ' ')}
@@ -100,7 +100,7 @@ const YourTasks: React.FC = () => {
 
         {/* Error Message */}
         {error && (
-          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 text-red-400 text-sm mb-6">
+          <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-4 text-destructive text-sm mb-6">
             {error}
           </div>
         )}
@@ -108,7 +108,7 @@ const YourTasks: React.FC = () => {
         {/* Loading State */}
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground"></div>
           </div>
         ) : filteredTasks.length === 0 ? (
           <motion.div
@@ -116,10 +116,10 @@ const YourTasks: React.FC = () => {
             animate={{ opacity: 1 }}
             className="text-center py-16"
           >
-            <div className="bg-gray-800/30 border border-gray-700/50 rounded-xl p-8 max-w-md mx-auto">
-              <CheckCircle className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-white mb-2">No tasks found</h3>
-              <p className="text-gray-400 mb-6">
+            <div className="bg-secondary/30 border border-border rounded-xl p-8 max-w-md mx-auto shadow-sm">
+              <CheckCircle className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-foreground mb-2">No tasks found</h3>
+              <p className="text-muted-foreground mb-6">
                 {filter === 'all' 
                   ? "You haven't posted any tasks yet. Get started by creating your first task!"
                   : `No tasks with status "${filter}"`
@@ -127,7 +127,7 @@ const YourTasks: React.FC = () => {
               </p>
               {filter === 'all' && (
                 <Link to="/publisher/add-task">
-                  <button className="bg-orange-500 text-white px-6 py-2 rounded-md font-semibold hover:bg-orange-600 transition-colors">
+                  <button className="bg-foreground text-background px-6 py-2 rounded-md font-semibold hover:opacity-90 transition-opacity">
                     Post Your First Task
                   </button>
                 </Link>
@@ -150,28 +150,28 @@ const YourTasks: React.FC = () => {
                 whileHover={{ y: -4 }}
               >
                 <Link to={`/publisher/task/${task.id}`}>
-                  <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-6 hover:border-orange-500/50 transition-all cursor-pointer h-full flex flex-col">
+                  <div className="bg-secondary/30 border border-border rounded-xl p-6 hover:border-foreground/50 transition-all cursor-pointer h-full flex flex-col shadow-sm">
                     {/* Status Badge */}
                     <div className="flex items-center justify-between mb-4">
                       <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(task.status)}`}>
                         {getStatusLabel(task.status)}
                       </span>
-                      <span className="text-xs text-gray-500">{task.category}</span>
+                      <span className="text-xs text-muted-foreground">{task.category}</span>
                     </div>
 
                     {/* Title */}
-                    <h3 className="text-lg font-semibold text-white mb-2 line-clamp-2">
+                    <h3 className="text-lg font-semibold text-foreground mb-2 line-clamp-2">
                       {task.title}
                     </h3>
 
                     {/* Description */}
-                    <p className="text-sm text-gray-400 mb-4 line-clamp-3 flex-grow">
+                    <p className="text-sm text-muted-foreground mb-4 line-clamp-3 flex-grow">
                       {task.description}
                     </p>
 
                     {/* Footer Info */}
-                    <div className="flex items-center justify-end pt-4 border-t border-gray-700/50">
-                      <div className="flex items-center space-x-1 text-sm text-gray-400" title="Deadline">
+                    <div className="flex items-center justify-end pt-4 border-t border-border">
+                      <div className="flex items-center space-x-1 text-sm text-muted-foreground" title="Deadline">
                         <Clock className="w-4 h-4" />
                         <span>{new Date(task.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                       </div>

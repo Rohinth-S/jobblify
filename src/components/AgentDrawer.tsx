@@ -161,7 +161,8 @@ export const AgentDrawer: React.FC<AgentDrawerProps> = ({
           }]);
         }, 500);
 
-        await fetch(`http://localhost:5000/complete-payment/${interactionId}`, {
+        const baseUrl = import.meta.env.VITE_AGENT_API_URL || 'http://localhost:5000';
+        await fetch(`${baseUrl}/complete-payment/${interactionId}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -205,6 +206,7 @@ export const AgentDrawer: React.FC<AgentDrawerProps> = ({
     const pollInterval = setInterval(async () => {
       try {
         let url = '';
+        const baseUrl = import.meta.env.VITE_AGENT_API_URL || 'http://localhost:5000';
         
         if (isVerification) {
           const verifyData = localStorage.getItem('currentVerification');
@@ -215,7 +217,7 @@ export const AgentDrawer: React.FC<AgentDrawerProps> = ({
             currentTaskId = currentTaskId || parsed.taskId || '';
           }
           
-          url = `http://localhost:5000/verification-status/${interactionId}?task_id=${currentTaskId}`;
+          url = `${baseUrl}/verification-status/${interactionId}?task_id=${currentTaskId}`;
         } else {
           const evalData = localStorage.getItem('currentEvaluation');
           let freelancerWallet = '';
@@ -227,7 +229,7 @@ export const AgentDrawer: React.FC<AgentDrawerProps> = ({
             currentTaskId = currentTaskId || parsed.taskId || '';
           }
           
-          url = `http://localhost:5000/reasoning-status/${interactionId}?task_id=${currentTaskId}&freelancer_wallet=${freelancerWallet}`;
+          url = `${baseUrl}/reasoning-status/${interactionId}?task_id=${currentTaskId}&freelancer_wallet=${freelancerWallet}`;
         }
         
         const response = await fetch(url);

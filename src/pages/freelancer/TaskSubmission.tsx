@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Plus, FileText, Code, CheckCircle, AlertTriangle, Trash2 } from 'lucide-react';
+import { ArrowLeft, Plus, FileText, Code, CheckCircle, Trash2 } from 'lucide-react';
 import { taskService } from '../../services/taskService';
 import type { Task } from '../../services/taskService';
 import AgentDrawer from '../../components/AgentDrawer';
@@ -16,13 +16,11 @@ type SubmissionField = {
 
 const TaskSubmission: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  
   const [task, setTask] = useState<Task | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [fields, setFields] = useState<SubmissionField[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [showSuccess] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [interactionId, setInteractionId] = useState<string | null>(null);
 
@@ -43,18 +41,18 @@ const TaskSubmission: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#111111] text-gray-300 pt-24 pb-16 px-4 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+      <div className="min-h-screen bg-background text-foreground pt-24 pb-16 px-4 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground"></div>
       </div>
     );
   }
 
   if (!task) {
     return (
-      <div className="min-h-screen bg-[#111111] text-gray-300 pt-24 pb-16 px-4 flex items-center justify-center">
+      <div className="min-h-screen bg-background text-foreground pt-24 pb-16 px-4 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">Task Not Found</h2>
-          <Link to="/freelancer/your-tasks" className="text-orange-500 hover:text-orange-400">
+          <h2 className="text-2xl font-bold text-foreground mb-4">Task Not Found</h2>
+          <Link to="/freelancer/your-tasks" className="text-muted-foreground hover:text-foreground">
             Return to Your Tasks
           </Link>
         </div>
@@ -88,7 +86,6 @@ const TaskSubmission: React.FC = () => {
     ));
   };
 
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -116,7 +113,8 @@ const TaskSubmission: React.FC = () => {
 
       await taskService.submitWork(task!.id, submissionData);
       
-      const response = await fetch('http://localhost:5000/verify-submission', {
+      const baseUrl = import.meta.env.VITE_AGENT_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${baseUrl}/verify-submission`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -153,22 +151,22 @@ const TaskSubmission: React.FC = () => {
     switch (field.type) {
       case 'text':
         return (
-          <div key={field.id} className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-6">
+          <div key={field.id} className="bg-secondary/30 border border-border rounded-xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-2">
-                <FileText className="w-5 h-5 text-orange-500" />
+                <FileText className="w-5 h-5 text-foreground" />
                 <input
                   type="text"
                   value={field.label}
                   onChange={(e) => updateFieldLabel(field.id, e.target.value)}
                   placeholder="Field Label"
-                  className="bg-gray-900/50 border border-gray-700 rounded px-3 py-1.5 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500"
+                  className="bg-background border border-border rounded px-3 py-1.5 text-foreground placeholder-muted-foreground focus:outline-none focus:border-foreground"
                 />
               </div>
               <button
                 type="button"
                 onClick={() => removeField(field.id)}
-                className="text-red-400 hover:text-red-300 transition-colors"
+                className="text-destructive hover:text-destructive/80 transition-colors"
               >
                 <Trash2 className="w-5 h-5" />
               </button>
@@ -178,29 +176,29 @@ const TaskSubmission: React.FC = () => {
               onChange={(e) => updateFieldContent(field.id, e.target.value)}
               placeholder="Enter your text content here..."
               rows={6}
-              className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 resize-none"
+              className="w-full bg-background border border-border rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:border-foreground resize-none"
             />
           </div>
         );
 
       case 'code':
         return (
-          <div key={field.id} className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-6">
+          <div key={field.id} className="bg-secondary/30 border border-border rounded-xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-2">
-                <Code className="w-5 h-5 text-orange-500" />
+                <Code className="w-5 h-5 text-foreground" />
                 <input
                   type="text"
                   value={field.label}
                   onChange={(e) => updateFieldLabel(field.id, e.target.value)}
                   placeholder="Field Label"
-                  className="bg-gray-900/50 border border-gray-700 rounded px-3 py-1.5 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500"
+                  className="bg-background border border-border rounded px-3 py-1.5 text-foreground placeholder-muted-foreground focus:outline-none focus:border-foreground"
                 />
               </div>
               <button
                 type="button"
                 onClick={() => removeField(field.id)}
-                className="text-red-400 hover:text-red-300 transition-colors"
+                className="text-destructive hover:text-destructive/80 transition-colors"
               >
                 <Trash2 className="w-5 h-5" />
               </button>
@@ -210,29 +208,28 @@ const TaskSubmission: React.FC = () => {
               onChange={(e) => updateFieldContent(field.id, e.target.value)}
               placeholder="Paste your code here..."
               rows={12}
-              className="w-full bg-gray-950 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 resize-none font-mono text-sm"
+              className="w-full bg-background/50 border border-border rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:border-foreground resize-none font-mono text-sm leading-relaxed"
             />
           </div>
         );
-
     }
   };
 
   if (showSuccess) {
     return (
-      <div className="min-h-screen bg-[#111111] text-gray-300 pt-24 pb-16 px-4 flex items-center justify-center">
+      <div className="min-h-screen bg-background text-foreground pt-24 pb-16 px-4 flex items-center justify-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           className="text-center"
         >
-          <div className="bg-gray-800/50 border border-green-500/50 rounded-xl p-12 max-w-lg">
-            <CheckCircle className="w-20 h-20 text-green-400 mx-auto mb-6" />
-            <h2 className="text-3xl font-bold text-white mb-3">Submission Received!</h2>
-            <p className="text-gray-300 mb-4">
+          <div className="bg-secondary/50 border border-green-500/50 rounded-xl p-12 max-w-lg shadow-sm">
+            <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-6" />
+            <h2 className="text-3xl font-bold text-foreground mb-3">Submission Received!</h2>
+            <p className="text-muted-foreground mb-4">
               Your work has been submitted successfully. The AI agent will now verify your submission.
             </p>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-muted-foreground opacity-70">
               Redirecting to your tasks...
             </p>
           </div>
@@ -242,13 +239,13 @@ const TaskSubmission: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#111111] text-gray-300 pt-24 pb-16 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background text-foreground pt-24 pb-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
         {/* Back Button */}
         <Link to="/freelancer/your-tasks">
           <motion.button
             whileHover={{ x: -4 }}
-            className="flex items-center space-x-2 text-gray-400 hover:text-white mb-6 transition-colors"
+            className="flex items-center space-x-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
             <span>Back to Your Tasks</span>
@@ -261,8 +258,8 @@ const TaskSubmission: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">Submit Your Work</h1>
-          <p className="text-xl text-gray-400">{task.title}</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">Submit Your Work</h1>
+          <p className="text-xl text-muted-foreground">{task.title}</p>
         </motion.div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -290,14 +287,14 @@ const TaskSubmission: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-gray-800/30 border border-gray-700/50 rounded-xl p-6"
+            className="bg-secondary/30 border border-border rounded-xl p-6 shadow-sm"
           >
-            <p className="text-sm font-semibold text-white mb-3">Add Submission Field:</p>
+            <p className="text-sm font-semibold text-foreground mb-3">Add Submission Field:</p>
             <div className="flex flex-wrap gap-3">
               <button
                 type="button"
                 onClick={() => addField('text')}
-                className="flex items-center space-x-2 bg-gray-700/50 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
+                className="flex items-center space-x-2 bg-secondary/50 hover:bg-secondary text-foreground px-4 py-2 rounded-lg transition-colors border border-border"
               >
                 <Plus className="w-4 h-4" />
                 <FileText className="w-4 h-4" />
@@ -306,7 +303,7 @@ const TaskSubmission: React.FC = () => {
               <button
                 type="button"
                 onClick={() => addField('code')}
-                className="flex items-center space-x-2 bg-gray-700/50 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
+                className="flex items-center space-x-2 bg-secondary/50 hover:bg-secondary text-foreground px-4 py-2 rounded-lg transition-colors border border-border"
               >
                 <Plus className="w-4 h-4" />
                 <Code className="w-4 h-4" />
@@ -320,12 +317,12 @@ const TaskSubmission: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="flex items-center justify-end space-x-4"
+            className="flex items-center justify-end space-x-4 mt-6 pt-4 border-t border-border"
           >
             <Link to="/freelancer/your-tasks">
               <button
                 type="button"
-                className="px-6 py-3 rounded-md text-gray-300 hover:text-white transition-colors"
+                className="px-6 py-3 rounded-md text-muted-foreground hover:text-foreground transition-colors"
               >
                 Cancel
               </button>
@@ -333,13 +330,13 @@ const TaskSubmission: React.FC = () => {
             <motion.button
               type="submit"
               disabled={isSubmitting || fields.length === 0}
-              whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
-              whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
-              className="bg-orange-500 text-white px-8 py-3 rounded-md font-semibold hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg flex items-center space-x-2"
+              whileHover={{ scale: (isSubmitting || fields.length === 0) ? 1 : 1.02 }}
+              whileTap={{ scale: (isSubmitting || fields.length === 0) ? 1 : 0.98 }}
+              className="bg-foreground text-background px-8 py-3 rounded-md font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-sm flex items-center space-x-2"
             >
               {isSubmitting ? (
                 <>
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-background border-t-transparent rounded-full animate-spin" />
                   <span>Submitting...</span>
                 </>
               ) : (

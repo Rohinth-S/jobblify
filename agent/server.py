@@ -27,15 +27,18 @@ app = Flask(__name__)
 CORS(app)
 
 supabase_url = os.getenv('SUPABASE_URL') or os.getenv('VITE_SUPABASE_URL')
-supabase_key = os.getenv('SUPABASE_KEY') or os.getenv('VITE_SUPABASE_ANON_KEY')
+supabase_key = os.getenv('SUPABASE_ANON_KEY') or os.getenv('VITE_SUPABASE_ANON_KEY')
 
 print(f"\n[Supabase Config]")
 print(f"URL: {supabase_url[:30] + '...' if supabase_url else 'NOT SET'}")
 print(f"Key: {'SET' if supabase_key else 'NOT SET'}\n")
 
-supabase: Client = create_client(supabase_url, supabase_key) if supabase_url and supabase_key else None
+try:
+    import requests
+except ImportError:
+    pass
 
-if not supabase:
+if not supabase_url or not supabase_key:
     print("[WARNING] Supabase not configured! Database updates will not work.")
 
 # Bureau to run both agents
@@ -118,20 +121,33 @@ def get_reasoning_status(interaction_id):
         # If approved and completed, update database and notify frontend
         if decision == 'APPROVED' and status == 'completed':
             if not evaluation.get('db_updated'):
-                if supabase:
+                if supabase_url and supabase_key:
                     try:
                         task_id = request.args.get('task_id')
                         freelancer_wallet = request.args.get('freelancer_wallet')
                         
                         if task_id and freelancer_wallet:
-                            supabase.table('tasks').update({
-                                'freelancer_wallet': freelancer_wallet,
-                                'status': 'in-progress'
-                            }).eq('id', task_id).execute()
-                            
-                            evaluation['db_updated'] = True
-                            evaluation['needs_smart_contract_assignment'] = True
-                            evaluation['freelancer_wallet'] = freelancer_wallet
+                            import requests
+                            headers = {
+                                'apikey': supabase_key,
+                                'Authorization': f'Bearer {supabase_key}',
+                                'Content-Type': 'application/json',
+                                'Prefer': 'return=minimal'
+                            }
+                            resp = requests.patch(
+                                f'{supabase_url}/rest/v1/tasks?id=eq.{task_id}',
+                                headers=headers,
+                                json={
+                                    'freelancer_wallet': freelancer_wallet,
+                                    'status': 'in-progress'
+                                }
+                            )
+                            if resp.status_code >= 400:
+                                print(f"Database update error, status: {resp.status_code}, {resp.text}")
+                            else:
+                                evaluation['db_updated'] = True
+                                evaluation['needs_smart_contract_assignment'] = True
+                                evaluation['freelancer_wallet'] = freelancer_wallet
                     except Exception as e:
                         print(f"Database update error: {e}")
         
@@ -219,12 +235,24 @@ def complete_payment(interaction_id):
         
         print(f"[Payment] Completing payment for task {task_id}, tx: {tx_hash}")
         
-        if supabase and task_id:
+        if supabase_url and supabase_key and task_id:
             try:
-                supabase.table('tasks').update({
-                    'status': 'completed'
-                }).eq('id', task_id).execute()
+                import requests
+                headers = {
+                    'apikey': supabase_key,
+                    'Authorization': f'Bearer {supabase_key}',
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=minimal'
+                }
+                resp = requests.patch(
+                    f'{supabase_url}/rest/v1/tasks?id=eq.{task_id}',
+                    headers=headers,
+                    json={'status': 'completed'}
+                )
                 
+                if resp.status_code >= 400:
+                    raise Exception(f"Failed to update task: {resp.text}")
+                    
                 print(f"[Payment] ✅ Task {task_id} marked as completed")
                 
                 verification['payment_status'] = 'completed'
@@ -253,4 +281,5 @@ def agent_addresses():
 
 if __name__ == '__main__':
 
-    app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)

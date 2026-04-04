@@ -6,7 +6,7 @@ export const supabaseConfig = {
 export const networkConfig = {
   chainId: 11155111,
   chainName: 'Sepolia', 
-  rpcUrl: import.meta.env.SEPOLIA_RPC_URL,
-  pyusdContractAddress: import.meta.env.PYUSD_ADDRESS,
+  rpcUrl: import.meta.env.VITE_SEPOLIA_RPC_URL,
+  pyusdContractAddress: import.meta.env.VITE_PYUSD_TOKEN_ADDRESS,
 };
 

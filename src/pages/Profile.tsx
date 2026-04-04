@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { User, Briefcase, GraduationCap, Award, Plus, X, Save, CheckCircle } from 'lucide-react';
+import { User, Briefcase, GraduationCap, Award, Plus, X, Save } from 'lucide-react';
 import { useWallet } from '../contexts/WalletContext';
 import { userService } from '../services/userService';
 import type { WorkExperience as DBWorkExperience, Education as DBEducation } from '../services/supabase';
@@ -152,17 +152,17 @@ const Profile: React.FC = () => {
   // Show loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#111111] text-gray-300 pt-24 pb-16 px-4 flex items-center justify-center">
+      <div className="min-h-screen bg-background text-foreground pt-24 pb-16 px-4 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading profile...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading profile...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#111111] text-gray-300 pt-24 pb-16 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background text-foreground pt-24 pb-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <motion.div
@@ -172,15 +172,15 @@ const Profile: React.FC = () => {
         >
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">Your Profile</h1>
-              <p className="text-gray-400">Build your professional profile to attract better opportunities</p>
+              <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">Your Profile</h1>
+              <p className="text-muted-foreground">Build your professional profile to attract better opportunities</p>
             </div>
             <motion.button
               onClick={handleSave}
               disabled={isSaving}
               whileHover={{ scale: isSaving ? 1 : 1.05 }}
               whileTap={{ scale: isSaving ? 1 : 0.95 }}
-              className="bg-orange-500 text-white px-6 py-3 rounded-md font-semibold hover:bg-orange-600 transition-colors flex items-center space-x-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-foreground text-background px-6 py-3 rounded-md font-semibold hover:opacity-90 transition-opacity flex items-center space-x-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save className="w-5 h-5" />
               <span>{isSaving ? 'Saving...' : 'Save Profile'}</span>
@@ -194,8 +194,8 @@ const Profile: React.FC = () => {
               exit={{ opacity: 0 }}
               className="bg-green-500/10 border border-green-500/30 rounded-lg p-4 flex items-center space-x-2"
             >
-              <Award className="w-5 h-5 text-green-400" />
-              <span className="text-green-400 font-medium">Profile saved successfully!</span>
+              <Award className="w-5 h-5 text-green-500" />
+              <span className="text-green-500 font-medium">Profile saved successfully!</span>
             </motion.div>
           )}
         </motion.div>
@@ -205,22 +205,22 @@ const Profile: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-8 mb-6"
+          className="bg-secondary/30 border border-border rounded-xl p-8 mb-6 shadow-sm"
         >
           <div className="flex items-center space-x-3 mb-4">
-            <User className="w-6 h-6 text-orange-500" />
-            <h2 className="text-2xl font-bold text-white">About Me</h2>
+            <User className="w-6 h-6 text-foreground" />
+            <h2 className="text-2xl font-bold text-foreground">About Me</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div>
-              <label htmlFor="name" className="block text-sm font-semibold text-white mb-2">Name *</label>
+              <label htmlFor="name" className="block text-sm font-semibold text-foreground mb-2">Name *</label>
               <input
                 id="name"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Your full name"
-                className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
+                className="w-full bg-background border border-border rounded-lg px-4 py-2 text-foreground placeholder-muted-foreground focus:outline-none focus:border-foreground transition-colors"
                 required
               />
             </div>
@@ -230,7 +230,7 @@ const Profile: React.FC = () => {
             onChange={(e) => setDescription(e.target.value)}
             rows={6}
             placeholder="Tell us about yourself, your expertise, and what makes you unique..."
-            className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors resize-none"
+            className="w-full bg-background border border-border rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:border-foreground transition-colors resize-none"
           />
         </motion.div>
 
@@ -239,16 +239,16 @@ const Profile: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-8 mb-6"
+          className="bg-secondary/30 border border-border rounded-xl p-8 mb-6 shadow-sm"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
-              <Award className="w-6 h-6 text-orange-500" />
-              <h2 className="text-2xl font-bold text-white">Skills</h2>
+              <Award className="w-6 h-6 text-foreground" />
+              <h2 className="text-2xl font-bold text-foreground">Skills</h2>
             </div>
             <button
               onClick={handleAddSkill}
-              className="text-orange-500 hover:text-orange-400 text-sm font-medium flex items-center space-x-1"
+              className="text-muted-foreground hover:text-foreground text-sm font-medium flex items-center space-x-1 transition-colors"
             >
               <Plus className="w-4 h-4" />
               <span>Add Skill</span>
@@ -262,12 +262,12 @@ const Profile: React.FC = () => {
                   value={skill}
                   onChange={(e) => handleSkillChange(index, e.target.value)}
                   placeholder={`Skill ${index + 1} (e.g., React, Python, UI Design)`}
-                  className="flex-grow bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
+                  className="flex-grow bg-background border border-border rounded-lg px-4 py-2 text-foreground placeholder-muted-foreground focus:outline-none focus:border-foreground transition-colors"
                 />
                 {skills.length > 1 && (
                   <button
                     onClick={() => handleRemoveSkill(index)}
-                    className="text-red-400 hover:text-red-300 p-2"
+                    className="text-destructive hover:text-destructive/80 p-2 transition-colors"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -282,16 +282,16 @@ const Profile: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-8 mb-6"
+          className="bg-secondary/30 border border-border rounded-xl p-8 mb-6 shadow-sm"
         >
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
-              <Briefcase className="w-6 h-6 text-orange-500" />
-              <h2 className="text-2xl font-bold text-white">Work Experience</h2>
+              <Briefcase className="w-6 h-6 text-foreground" />
+              <h2 className="text-2xl font-bold text-foreground">Work Experience</h2>
             </div>
             <button
               onClick={handleAddExperience}
-              className="text-orange-500 hover:text-orange-400 text-sm font-medium flex items-center space-x-1"
+              className="text-muted-foreground hover:text-foreground text-sm font-medium flex items-center space-x-1 transition-colors"
             >
               <Plus className="w-4 h-4" />
               <span>Add Experience</span>
@@ -299,13 +299,13 @@ const Profile: React.FC = () => {
           </div>
           <div className="space-y-6">
             {workExperience.map((exp, index) => (
-              <div key={exp.id} className="bg-gray-900/30 border border-gray-700/30 rounded-lg p-6">
+              <div key={exp.id} className="bg-secondary/50 border border-border rounded-lg p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-white">Experience {index + 1}</h3>
+                  <h3 className="text-lg font-semibold text-foreground">Experience {index + 1}</h3>
                   {workExperience.length > 1 && (
                     <button
                       onClick={() => handleRemoveExperience(exp.id)}
-                      className="text-red-400 hover:text-red-300"
+                      className="text-destructive hover:text-destructive/80 transition-colors"
                     >
                       <X className="w-5 h-5" />
                     </button>
@@ -318,14 +318,14 @@ const Profile: React.FC = () => {
                       value={exp.company}
                       onChange={(e) => handleExperienceChange(exp.id, 'company', e.target.value)}
                       placeholder="Company Name"
-                      className="bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
+                      className="bg-background border border-border rounded-lg px-4 py-2 text-foreground placeholder-muted-foreground focus:outline-none focus:border-foreground transition-colors"
                     />
                     <input
                       type="text"
                       value={exp.position}
                       onChange={(e) => handleExperienceChange(exp.id, 'position', e.target.value)}
                       placeholder="Position"
-                      className="bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
+                      className="bg-background border border-border rounded-lg px-4 py-2 text-foreground placeholder-muted-foreground focus:outline-none focus:border-foreground transition-colors"
                     />
                   </div>
                   <input
@@ -333,14 +333,14 @@ const Profile: React.FC = () => {
                     value={exp.duration}
                     onChange={(e) => handleExperienceChange(exp.id, 'duration', e.target.value)}
                     placeholder="Duration (e.g., Jan 2020 - Dec 2022)"
-                    className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
+                    className="w-full bg-background border border-border rounded-lg px-4 py-2 text-foreground placeholder-muted-foreground focus:outline-none focus:border-foreground transition-colors"
                   />
                   <textarea
                     value={exp.description}
                     onChange={(e) => handleExperienceChange(exp.id, 'description', e.target.value)}
                     rows={3}
                     placeholder="Describe your responsibilities and achievements..."
-                    className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors resize-none"
+                    className="w-full bg-background border border-border rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:border-foreground transition-colors resize-none"
                   />
                 </div>
               </div>
@@ -353,16 +353,16 @@ const Profile: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-8 mb-6"
+          className="bg-secondary/30 border border-border rounded-xl p-8 mb-6 shadow-sm"
         >
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
-              <GraduationCap className="w-6 h-6 text-orange-500" />
-              <h2 className="text-2xl font-bold text-white">Education</h2>
+              <GraduationCap className="w-6 h-6 text-foreground" />
+              <h2 className="text-2xl font-bold text-foreground">Education</h2>
             </div>
             <button
               onClick={handleAddEducation}
-              className="text-orange-500 hover:text-orange-400 text-sm font-medium flex items-center space-x-1"
+              className="text-muted-foreground hover:text-foreground text-sm font-medium flex items-center space-x-1 transition-colors"
             >
               <Plus className="w-4 h-4" />
               <span>Add Education</span>
@@ -370,13 +370,13 @@ const Profile: React.FC = () => {
           </div>
           <div className="space-y-6">
             {education.map((edu, index) => (
-              <div key={edu.id} className="bg-gray-900/30 border border-gray-700/30 rounded-lg p-6">
+              <div key={edu.id} className="bg-secondary/50 border border-border rounded-lg p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-white">Education {index + 1}</h3>
+                  <h3 className="text-lg font-semibold text-foreground">Education {index + 1}</h3>
                   {education.length > 1 && (
                     <button
                       onClick={() => handleRemoveEducation(edu.id)}
-                      className="text-red-400 hover:text-red-300"
+                      className="text-destructive hover:text-destructive/80 transition-colors"
                     >
                       <X className="w-5 h-5" />
                     </button>
@@ -388,7 +388,7 @@ const Profile: React.FC = () => {
                     value={edu.institution}
                     onChange={(e) => handleEducationChange(edu.id, 'institution', e.target.value)}
                     placeholder="Institution Name"
-                    className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
+                    className="w-full bg-background border border-border rounded-lg px-4 py-2 text-foreground placeholder-muted-foreground focus:outline-none focus:border-foreground transition-colors"
                   />
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <input
@@ -396,14 +396,14 @@ const Profile: React.FC = () => {
                       value={edu.degree}
                       onChange={(e) => handleEducationChange(edu.id, 'degree', e.target.value)}
                       placeholder="Degree/Certificate"
-                      className="bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
+                      className="bg-background border border-border rounded-lg px-4 py-2 text-foreground placeholder-muted-foreground focus:outline-none focus:border-foreground transition-colors"
                     />
                     <input
                       type="text"
                       value={edu.year}
                       onChange={(e) => handleEducationChange(edu.id, 'year', e.target.value)}
                       placeholder="Year (e.g., 2020)"
-                      className="bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
+                      className="bg-background border border-border rounded-lg px-4 py-2 text-foreground placeholder-muted-foreground focus:outline-none focus:border-foreground transition-colors"
                     />
                   </div>
                 </div>

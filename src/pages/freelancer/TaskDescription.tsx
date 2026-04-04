@@ -13,7 +13,7 @@ const TaskDescription: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isApplying, setIsApplying] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [showSuccess] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [interactionId, setInteractionId] = useState<string | null>(null);
 
@@ -49,7 +49,8 @@ const TaskDescription: React.FC = () => {
     setIsDrawerOpen(true);
     
     try {
-      const response = await fetch('http://localhost:5000/evaluate-freelancer', {
+      const baseUrl = import.meta.env.VITE_AGENT_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${baseUrl}/evaluate-freelancer`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -99,20 +100,20 @@ const TaskDescription: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#111111] text-gray-300 pt-24 pb-16 px-4 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+      <div className="min-h-screen bg-background text-foreground pt-24 pb-16 px-4 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground"></div>
       </div>
     );
   }
 
   if (error || !task) {
     return (
-      <div className="min-h-screen bg-[#111111] text-gray-300 pt-24 pb-16 px-4 flex items-center justify-center">
+      <div className="min-h-screen bg-background text-foreground pt-24 pb-16 px-4 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">
+          <h2 className="text-2xl font-bold text-foreground mb-4">
             {error || 'Task Not Found'}
           </h2>
-          <Link to="/freelancer/browse" className="text-orange-500 hover:text-orange-400">
+          <Link to="/freelancer/browse" className="text-muted-foreground hover:text-foreground">
             Return to Browse Tasks
           </Link>
         </div>
@@ -123,13 +124,13 @@ const TaskDescription: React.FC = () => {
   const daysUntilDeadline = Math.ceil((new Date(task.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
 
   return (
-    <div className="min-h-screen bg-[#111111] text-gray-300 pt-24 pb-16 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background text-foreground pt-24 pb-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
         {/* Back Button */}
         <Link to="/freelancer/browse">
           <motion.button
             whileHover={{ x: -4 }}
-            className="flex items-center space-x-2 text-gray-400 hover:text-white mb-6 transition-colors"
+            className="flex items-center space-x-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
             <span>Back to Browse</span>
@@ -143,28 +144,28 @@ const TaskDescription: React.FC = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-8"
+              className="bg-secondary/30 border border-border rounded-xl p-8 shadow-sm"
             >
               <div className="flex flex-wrap items-center gap-3 mb-4">
-                <span className="px-3 py-1 rounded-full text-xs font-medium bg-orange-500/10 text-orange-500 border border-orange-500/20">
+                <span className="px-3 py-1 rounded-full text-xs font-medium bg-secondary text-foreground border border-border">
                   {task.category}
                 </span>
               </div>
 
-              <h1 className="text-3xl font-bold text-white mb-4">{task.title}</h1>
+              <h1 className="text-3xl font-bold text-foreground mb-4">{task.title}</h1>
 
-              <div className="flex items-center space-x-2 text-gray-400 text-sm mb-6">
+              <div className="flex items-center space-x-2 text-muted-foreground text-sm mb-6">
                 <Tag className="w-4 h-4" />
-                <span className="px-3 py-1 rounded-full text-xs font-medium bg-orange-500/10 text-orange-500 border border-orange-500/20">
+                <span className="px-3 py-1 rounded-full text-xs font-medium bg-secondary text-foreground border border-border">
                   {task.category}
                 </span>
-                <span className="text-gray-600">•</span>
+                <span className="text-muted-foreground/50">•</span>
                 <span>{new Date(task.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
               </div>
 
               <div>
-                <h2 className="text-xl font-semibold text-white mb-3">Description</h2>
-                <p className="text-gray-300 leading-relaxed">{task.description}</p>
+                <h2 className="text-xl font-semibold text-foreground mb-3">Description</h2>
+                <p className="text-muted-foreground leading-relaxed">{task.description}</p>
               </div>
             </motion.div>
 
@@ -173,14 +174,14 @@ const TaskDescription: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-8"
+              className="bg-secondary/30 border border-border rounded-xl p-8 shadow-sm"
             >
-              <h2 className="text-xl font-semibold text-white mb-4">Requirements</h2>
+              <h2 className="text-xl font-semibold text-foreground mb-4">Requirements</h2>
               <ul className="space-y-2">
                 {task.requirements.map((req, index) => (
                   <li key={index} className="flex items-start space-x-2">
-                    <CheckCircle className="w-5 h-5 text-orange-500 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-300">{req}</span>
+                    <CheckCircle className="w-5 h-5 text-foreground mt-0.5 flex-shrink-0" />
+                    <span className="text-muted-foreground">{req}</span>
                   </li>
                 ))}
               </ul>
@@ -194,28 +195,28 @@ const TaskDescription: React.FC = () => {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
-              className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-6 sticky top-24"
+              className="bg-secondary/30 border border-border rounded-xl p-6 sticky top-24 shadow-sm"
             >
               <div className="mb-6">
-                <div className="text-sm text-gray-400 mb-2">Budget</div>
-                <div className="flex items-center space-x-1 text-orange-500">
+                <div className="text-sm text-muted-foreground mb-2">Budget</div>
+                <div className="flex items-center space-x-1 text-foreground">
                   <DollarSign className="w-6 h-6" />
                   <span className="text-3xl font-bold">{task.budget}</span>
-                  <span className="text-sm text-gray-400">PYUSD</span>
+                  <span className="text-sm text-muted-foreground">PYUSD</span>
                 </div>
               </div>
 
-              <div className="mb-6 pb-6 border-b border-gray-700/50">
+              <div className="mb-6 pb-6 border-b border-border">
                 <div className="flex items-center justify-between text-sm mb-3">
-                  <span className="text-gray-400">Deadline</span>
-                  <div className="flex items-center space-x-1 text-white">
+                  <span className="text-muted-foreground">Deadline</span>
+                  <div className="flex items-center space-x-1 text-foreground">
                     <Clock className="w-4 h-4" />
                     <span>{new Date(task.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-400">Time Left</span>
-                  <span className={`font-semibold ${daysUntilDeadline < 7 ? 'text-red-400' : 'text-white'}`}>
+                  <span className="text-muted-foreground">Time Left</span>
+                  <span className={`font-semibold ${daysUntilDeadline < 7 ? 'text-destructive' : 'text-foreground'}`}>
                     {daysUntilDeadline} days
                   </span>
                 </div>
@@ -224,14 +225,14 @@ const TaskDescription: React.FC = () => {
               <motion.button
                 onClick={handleApply}
                 disabled={isApplying || showSuccess}
-                whileHover={{ scale: isApplying || showSuccess ? 1 : 1.03 }}
-                whileTap={{ scale: isApplying || showSuccess ? 1 : 0.97 }}
-                className={`w-full py-4 rounded-lg text-base font-semibold transition-all ${
+                whileHover={{ scale: isApplying || showSuccess ? 1 : 1.02 }}
+                whileTap={{ scale: isApplying || showSuccess ? 1 : 0.98 }}
+                className={`w-full py-4 rounded-lg text-base font-semibold transition-all shadow-sm ${
                   showSuccess
-                    ? 'bg-green-500/20 text-green-400 border-2 border-green-500/40 cursor-default'
+                    ? 'bg-green-500/20 text-green-500 border-2 border-green-500/40 cursor-default'
                     : isApplying
-                    ? 'bg-orange-500/50 text-white cursor-not-allowed'
-                    : 'bg-orange-500 text-white hover:bg-orange-600 shadow-lg'
+                    ? 'bg-foreground/50 text-background cursor-not-allowed'
+                    : 'bg-foreground text-background hover:opacity-90'
                 }`}
               >
                 {showSuccess ? (

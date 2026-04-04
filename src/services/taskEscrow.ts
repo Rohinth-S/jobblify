@@ -22,7 +22,7 @@ const ERC20_ABI = [
 
 // Contract addresses from environment variables
 const TASK_ESCROW_ADDRESS = import.meta.env.VITE_TASK_ESCROW_ADDRESS;
-const PYUSD_TOKEN_ADDRESS = import.meta.env.PYUSD_ADDRESS || '0xCaC524BcA292aaade2DF8A05cC58F0a65B1B3bB9';
+const PYUSD_TOKEN_ADDRESS = import.meta.env.VITE_PYUSD_TOKEN_ADDRESS || '0xCaC524BcA292aaade2DF8A05cC58F0a65B1B3bB9';
 
 export class TaskEscrowService {
   private provider: BrowserProvider | null = null;
