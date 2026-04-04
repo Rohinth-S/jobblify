@@ -1,16 +1,27 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, DollarSign, Clock, Tag, User, CheckCircle, AlertCircle, Send } from 'lucide-react';
+import { ArrowLeft, DollarSign, Clock, User, CheckCircle, Upload, FileCode } from 'lucide-react';
 import { getTaskById } from '../../data/mockData';
 
 const TaskDescription: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const task = getTaskById(id || '');
-  const [showApplyModal, setShowApplyModal] = useState(false);
-  const [experience, setExperience] = useState('');
-  const [isApplying, setIsApplying] = useState(false);
-  const [hasApplied, setHasApplied] = useState(false);
+  // Submission state (multi-entry)
+  type EntryType = 'image' | 'text' | 'code' | 'pdf';
+  interface SubmissionEntry {
+    id: string;
+    type: EntryType;
+    text?: string; // for text/code
+    file?: File; // for image/pdf
+    preview?: string; // data URL or filename
+  }
+  const [entries, setEntries] = useState<SubmissionEntry[]>([
+    { id: crypto.randomUUID(), type: 'text', text: '' }
+  ]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const fileInputsRef = useRef<Record<string, HTMLInputElement | null>>({});
 
   if (!task) {
     return (
@@ -25,22 +36,54 @@ const TaskDescription: React.FC = () => {
     );
   }
 
-  const getDifficultyColor = (difficulty?: string) => {
-    switch (difficulty) {
-      case 'easy': return 'text-green-400 bg-green-400/10 border-green-400/20';
-      case 'medium': return 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20';
-      case 'hard': return 'text-red-400 bg-red-400/10 border-red-400/20';
-      default: return 'text-gray-400 bg-gray-400/10 border-gray-400/20';
-    }
+  // Difficulty removed per requirements
+
+  const addEntry = () => {
+    setEntries(prev => [...prev, { id: crypto.randomUUID(), type: 'text', text: '' }]);
   };
 
-  const handleApply = async () => {
-    setIsApplying(true);
-    // Simulate API call
+  const removeEntry = (id: string) => {
+    setEntries(prev => prev.filter(e => e.id !== id));
+  };
+
+  const updateEntryType = (id: string, type: EntryType) => {
+    setEntries(prev => prev.map(e => e.id === id ? { id, type, text: type === 'text' || type === 'code' ? (e.text || '') : undefined, file: undefined, preview: undefined } : e));
+  };
+
+  const handleFileChange = (id: string, file?: File) => {
+    if (!file) return;
+    setEntries(prev => prev.map(e => {
+      if (e.id !== id) return e;
+      const entry = { ...e, file } as SubmissionEntry;
+      if (e.type === 'image') {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setEntries(curr => curr.map(x => x.id === id ? { ...entry, preview: reader.result as string } : x));
+        };
+        reader.readAsDataURL(file);
+      } else if (e.type === 'pdf') {
+        entry.preview = file.name;
+      } else if (e.type === 'code' || e.type === 'text') {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setEntries(curr => curr.map(x => x.id === id ? { ...entry, text: (reader.result as string) || '' } : x));
+        };
+        reader.readAsText(file);
+      }
+      return entry;
+    }));
+  };
+
+  const handleTextChange = (id: string, text: string) => {
+    setEntries(prev => prev.map(e => e.id === id ? { ...e, text } : e));
+  };
+
+  const submitAll = async () => {
+    setIsSubmitting(true);
     await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsApplying(false);
-    setHasApplied(true);
-    setShowApplyModal(false);
+    setIsSubmitting(false);
+    setShowSuccess(true);
+    setTimeout(() => setShowSuccess(false), 2500);
   };
 
   const daysUntilDeadline = Math.ceil((new Date(task.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
@@ -72,11 +115,6 @@ const TaskDescription: React.FC = () => {
                 <span className="px-3 py-1 rounded-full text-xs font-medium bg-orange-500/10 text-orange-500 border border-orange-500/20">
                   {task.category}
                 </span>
-                {task.difficulty && (
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getDifficultyColor(task.difficulty)}`}>
-                    {task.difficulty}
-                  </span>
-                )}
               </div>
 
               <h1 className="text-3xl font-bold text-white mb-4">{task.title}</h1>
@@ -147,111 +185,114 @@ const TaskDescription: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mb-6">
-                <div className="flex items-center justify-between text-sm text-gray-400 mb-1">
-                  <span>Applicants</span>
-                  <span className="text-white font-semibold">{task.applications.length}</span>
-                </div>
-              </div>
-
-              {hasApplied ? (
-                <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4 text-center">
-                  <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-2" />
-                  <p className="text-green-400 font-semibold">Application Submitted</p>
-                  <p className="text-sm text-gray-400 mt-1">You'll be notified once the AI reviews your application</p>
-                </div>
-              ) : (
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setShowApplyModal(true)}
-                  className="w-full bg-orange-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors shadow-lg flex items-center justify-center space-x-2"
-                >
-                  <Send className="w-5 h-5" />
-                  <span>Apply for Task</span>
-                </motion.button>
-              )}
-
-              <div className="mt-4 bg-orange-500/10 border border-orange-500/30 rounded-lg p-3">
-                <div className="flex items-start space-x-2">
-                  <AlertCircle className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
-                  <p className="text-xs text-gray-300">
-                    Your application will be reviewed by an AI agent to assess your eligibility for this task
-                  </p>
-                </div>
-              </div>
+              {/* Apply removed; this page includes submission section below */}
             </motion.div>
           </div>
         </div>
+      
+        {/* Submission Section (multi-entry) */}
+        <div className="max-w-5xl mx-auto mt-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-8"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold text-white">Submit Your Work</h2>
+              <button onClick={addEntry} className="text-orange-500 hover:text-orange-400 text-sm font-medium">+ Add Item</button>
+            </div>
+
+            <div className="space-y-6">
+              {entries.map((entry, index) => (
+                <div key={entry.id} className="bg-gray-900/40 border border-gray-700/40 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="text-sm text-gray-400">Item {index + 1}</div>
+                    {entries.length > 1 && (
+                      <button onClick={() => removeEntry(entry.id)} className="text-red-400 hover:text-red-300 text-sm">Remove</button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-white mb-2">Type</label>
+                      <select
+                        value={entry.type}
+                        onChange={(e) => updateEntryType(entry.id, e.target.value as EntryType)}
+                        className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-3 py-2 text-white"
+                      >
+                        <option value="text">Text</option>
+                        <option value="code">Code</option>
+                        <option value="image">Image</option>
+                        <option value="pdf">PDF</option>
+                      </select>
+                    </div>
+                    <div className="lg:col-span-3">
+                      {(entry.type === 'text' || entry.type === 'code') && (
+                        <textarea
+                          value={entry.text || ''}
+                          onChange={(e) => handleTextChange(entry.id, e.target.value)}
+                          rows={entry.type === 'code' ? 8 : 5}
+                          placeholder={entry.type === 'code' ? 'Paste your code here...' : 'Write your description here...'}
+                          className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
+                        />
+                      )}
+                      {(entry.type === 'image' || entry.type === 'pdf') && (
+                        <div>
+                          <div
+                            className="border-2 border-dashed border-gray-700 rounded-lg p-8 text-center hover:border-orange-500 transition-colors cursor-pointer"
+                            onClick={() => {
+                              const input = fileInputsRef.current[entry.id];
+                              if (input) input.click();
+                            }}
+                          >
+                            <Upload className="w-8 h-8 text-gray-500 mx-auto mb-2" />
+                            <div className="text-sm text-gray-300">Click to upload {entry.type.toUpperCase()}</div>
+                          </div>
+                          <input
+                            ref={(el) => { fileInputsRef.current[entry.id] = el; }}
+                            type="file"
+                            accept={entry.type === 'image' ? '.jpg,.jpeg,.png,.gif' : '.pdf'}
+                            onChange={(e) => handleFileChange(entry.id, e.target.files?.[0])}
+                            className="hidden"
+                          />
+                          {entry.type === 'image' && entry.preview && (
+                            <img src={entry.preview} alt="Preview" className="mt-3 max-w-full rounded-lg border border-gray-700" />
+                          )}
+                          {entry.type === 'pdf' && entry.preview && (
+                            <div className="mt-3 text-sm text-gray-400 flex items-center space-x-2">
+                              <FileCode className="w-4 h-4" />
+                              <span>{entry.preview}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-end mt-6">
+              <motion.button
+                whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
+                whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
+                onClick={submitAll}
+                disabled={isSubmitting || entries.length === 0}
+                className="bg-orange-500 text-white px-8 py-3 rounded-md font-semibold hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+              >
+                {isSubmitting ? 'Submitting...' : 'Submit Work'}
+              </motion.button>
+            </div>
+
+            <AnimatePresence>
+              {showSuccess && (
+                <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-4 text-green-400 text-sm">
+                  <CheckCircle className="inline w-4 h-4 mr-1" /> Submission received!
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        </div>
       </div>
-
-      {/* Apply Modal */}
-      <AnimatePresence>
-        {showApplyModal && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowApplyModal(false)}
-              className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            >
-              <div className="bg-gray-800 border border-gray-700 rounded-xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                <h2 className="text-2xl font-bold text-white mb-4">Apply for Task</h2>
-                <p className="text-gray-400 mb-6">
-                  Tell us about your experience and why you're a good fit for this task. The AI agent will review your application.
-                </p>
-
-                <div className="mb-6">
-                  <label htmlFor="experience" className="block text-sm font-semibold text-white mb-2">
-                    Your Experience & Qualifications *
-                  </label>
-                  <textarea
-                    id="experience"
-                    value={experience}
-                    onChange={(e) => setExperience(e.target.value)}
-                    rows={8}
-                    placeholder="Describe your relevant experience, skills, and why you're qualified for this task..."
-                    className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors resize-none"
-                  />
-                </div>
-
-                <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
-                  <h3 className="text-sm font-semibold text-blue-400 mb-2">AI Assessment</h3>
-                  <p className="text-sm text-gray-300">
-                    After submission, an AI agent will analyze your experience, verify your qualifications, and determine your eligibility for this task. You'll receive feedback within minutes.
-                  </p>
-                </div>
-
-                <div className="flex items-center justify-end space-x-4">
-                  <button
-                    onClick={() => setShowApplyModal(false)}
-                    disabled={isApplying}
-                    className="px-6 py-3 rounded-lg text-gray-300 hover:text-white transition-colors disabled:opacity-50"
-                  >
-                    Cancel
-                  </button>
-                  <motion.button
-                    whileHover={{ scale: isApplying ? 1 : 1.02 }}
-                    whileTap={{ scale: isApplying ? 1 : 0.98 }}
-                    onClick={handleApply}
-                    disabled={isApplying || experience.trim().length < 20}
-                    className="bg-orange-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isApplying ? 'Submitting...' : 'Submit Application'}
-                  </motion.button>
-                </div>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
     </div>
   );
 };
